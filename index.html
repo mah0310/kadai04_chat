@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Firebase:v9:Chatアプリ</title>
+
+<style>
+    #output {
+        padding: 10px;
+        height: 300px;
+        overflow-y: auto;
+        background-color: #fff;
+        width: 100%;
+    }
+    
+    .message {
+        display: flex;
+        width: 100%;
+        margin: 8px 0;
+    }
+    
+    .my-message {
+        justify-content: flex-end;
+    }
+    
+    .other-message {
+        justify-content: flex-start;
+    }
+    
+    .bubble {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        overflow-wrap: break-word;
+        background-color: #d1ecf1;
+    }
+    
+    .my-message .bubble {
+        background-color: #bee5eb;
+        border-top-right-radius: 0;
+        margin-right: 10px;
+    }
+    
+    .other-message .bubble {
+        background-color: #e2e3e5;
+        border-top-left-radius: 0;
+        margin-left: 10px;
+    }
+    
+    .info {
+        font-size: 0.7em;
+        color: #666;
+        margin-top: 4px;
+        text-align: right;
+    }
+    
+    .my-message .info {
+        text-align: right;
+    }
+    
+    .other-message .info {
+        text-align: left;
+    }
+</style>
+
+</head>
+<body>
+
+<!-- コンテンツ表示画面 -->
+
+<div style="background-color: cornflowerblue; width: auto; border-radius: 10px;">
+    <div id="output" style="overflow: auto; height: 300px ;"></div>
+    <div> 名前：<input type="text" id="uname"> </div>
+    <div>
+        <textarea id="text" cols="30" rows="3"></textarea>
+        <button id="send">送信</button>
+    </div>
+    
+</div>
+<!--/ コンテンツ表示画面 -->
+
+
+
+
+<!-- JQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- JQuery -->
+
+
+<!--** 以下Firebase **-->
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved } 
+    from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey:  ************,
+      authDomain:  ************,
+      projectId:  ************,
+      storageBucket:  ************,
+      messagingSenderId:  ************,
+      appId:  ************
+    };
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+ 
+    const db = getDatabase(app);
+    const dbRef = ref(db,"Chat"); //データが入る場所を指定
+
+    let currentUser = "";
+
+    // 送信イベント
+    $("#send").on("click",function(){ 
+        if(currentUser===""){
+            currentUser=$("#uname").val().trim();
+        }
+        
+        const now = new Date();
+        const timeString = now.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+        const dateString = now.toLocaleDateString("ja-JP");
+
+        const msg = {
+            uname:$("#uname").val(),
+            text:$("#text").val(),
+            time: timeString,
+            date: dateString
+        };
+
+        const newPostRef = push(dbRef); //Unique ID（いい感じ名前）を作ってくれる
+        set(newPostRef, msg);//set(キー名, 値)
+
+    });
+ 
+    // 受信イベント
+    onChildAdded(dbRef,function(date){ //onChildAddedは、ブラウザのデータを拾ってきてくれる！
+        const msg = date.val(); //msgにオブジェクト変数を渡す
+       
+        let messageClass = "";
+        if(msg.uname===currentUser){
+            messageClass= "my-message";
+        }else{
+            messageClass= "other-message";
+        }
+        
+    
+        let h = `
+          <div class="message ${messageClass}"> 
+            <div class="bubble">
+                <div class="text">${msg.text}</div>
+                <div class="info">
+                    <span class="name">${msg.uname} </span>
+                    <span class="time">${msg.date} ${msg.time}</span>
+                </div>
+            </div>
+        </div>`; 
+        // 外側のdivで外側の箱を定義し、次のdivで吹き出しを定義、その中にテキストのdivと名前や時間が入るspan
+        $("#output").append(h);
+        $("#output").scrollTop($("#output")[0].scrollHeight); 
+    });
+
+
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
